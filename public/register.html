@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register — Alumni Mentorship</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+    }
+    nav {
+      background: white;
+      padding: 14px 28px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      font-weight: 600;
+      color: #3730a3;
+      font-size: 1rem;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+    .card {
+      background: white;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 { font-size: 1.5rem; font-weight: 700; text-align: center; color: #111827; margin-bottom: 6px; }
+    .sub { font-size: .875rem; color: #6b7280; text-align: center; margin-bottom: 24px; }
+    .fields { display: flex; flex-direction: column; gap: 14px; }
+    .hint { font-size: .78rem; color: #9ca3af; margin-top: -6px; padding-left: 2px; }
+
+    input {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: .95rem; font-family: inherit; outline: none;
+      transition: border-color .2s;
+    }
+    input:focus { border-color: #6366f1; }
+    input::placeholder { color: #9ca3af; }
+
+    /* Role selector */
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .role-card {
+      border: 1.5px solid #d1d5db; border-radius: 10px;
+      padding: 14px 10px; cursor: pointer; text-align: center;
+      transition: border-color .2s, background .2s;
+    }
+    .role-card input[type=radio] { display: none; }
+    .role-card .role-icon { font-size: 1.6rem; margin-bottom: 6px; display: block; }
+    .role-card .role-name { font-size: .875rem; font-weight: 600; color: #111; }
+    .role-card .role-desc { font-size: .75rem; color: #6b7280; margin-top: 2px; }
+    .role-card.selected { border-color: #6366f1; background: #eef2ff; }
+
+    button.primary {
+      width: 100%; padding: 10px;
+      background: #4f46e5; color: white; border: none;
+      border-radius: 8px; font-size: .95rem; font-weight: 500;
+      font-family: inherit; cursor: pointer; transition: background .2s;
+    }
+    button.primary:hover { background: #4338ca; }
+
+    .foot { text-align: center; margin-top: 20px; font-size: .875rem; color: #4b5563; }
+    .foot a { color: #4338ca; font-weight: 600; text-decoration: none; }
+    .foot a:hover { text-decoration: underline; }
+
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: .875rem; margin-bottom: 4px; display: none; }
+    .alert.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; display: block; }
+    .alert.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; display: block; }
+  </style>
+</head>
+<body>
+  <nav>🎓 Alumni Mentorship</nav>
+  <main>
+    <div class="card">
+      <h2>Create Account</h2>
+      <p class="sub">Register as a student or mentor</p>
+
+      <div id="alert" class="alert"></div>
+
+      <div class="fields">
+        <input type="text" id="reg_name" placeholder="Enter your name" autocomplete="name" />
+        <input type="password" id="reg_pass" placeholder="Create a password" autocomplete="new-password" />
+        <input type="password" id="reg_pass2" placeholder="Confirm password" autocomplete="new-password" />
+
+        <div>
+          <p style="font-size:.82rem;font-weight:600;color:#111;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">I am a</p>
+          <div class="role-grid">
+            <label class="role-card selected" id="card-student">
+              <input type="radio" name="role" value="student" checked onchange="selectRole('student')" />
+              <span class="role-icon">📚</span>
+              <div class="role-name">Student</div>
+              <div class="role-desc">Find mentors</div>
+            </label>
+            <label class="role-card" id="card-mentor">
+              <input type="radio" name="role" value="mentor" onchange="selectRole('mentor')" />
+              <span class="role-icon">🏆</span>
+              <div class="role-name">Mentor</div>
+              <div class="role-desc">Guide students</div>
+            </label>
+          </div>
+        </div>
+
+        <button class="primary" onclick="register()">Create Account</button>
+      </div>
+
+      <p class="foot">Already have an account? <a href="login.html">Login here</a></p>
+    </div>
+  </main>
+
+  <script>
+    function selectRole(role) {
+      document.getElementById('card-student').classList.toggle('selected', role === 'student');
+      document.getElementById('card-mentor').classList.toggle('selected', role === 'mentor');
+    }
+
+    async function register() {
+      const name = document.getElementById('reg_name').value.trim();
+      const password = document.getElementById('reg_pass').value;
+      const password2 = document.getElementById('reg_pass2').value;
+      const role = document.querySelector('input[name=role]:checked').value;
+      const alertEl = document.getElementById('alert');
+      alertEl.className = 'alert';
+
+      if (!name || !password || !password2) {
+        alertEl.className = 'alert error';
+        alertEl.textContent = 'Please fill in all fields.';
+        return;
+      }
+      if (password !== password2) {
+        alertEl.className = 'alert error';
+        alertEl.textContent = 'Passwords do not match.';
+        return;
+      }
+
+      try {
+        const res = await fetch('/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, password, role })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alertEl.className = 'alert success';
+          alertEl.textContent = 'Account created! Your User ID is ' + data.user_id + '. Redirecting to login...';
+          setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+        } else {
+          alertEl.className = 'alert error';
+          alertEl.textContent = data.error || 'Registration failed.';
+        }
+      } catch (err) {
+        alertEl.className = 'alert error';
+        alertEl.textContent = 'Server error. Please make sure the server is running.';
+      }
+    }
+  </script>
+</body>
+</html>

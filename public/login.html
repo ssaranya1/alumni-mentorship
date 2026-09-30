@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login — Alumni Mentorship</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+    }
+
+    nav {
+      background: white;
+      padding: 14px 28px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      font-weight: 600;
+      color: #3730a3;
+      font-size: 1rem;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .card {
+      background: white;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    .sub {
+      font-size: .875rem;
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .fields { display: flex; flex-direction: column; gap: 14px; }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input:focus { border-color: #6366f1; }
+
+    button.primary {
+      width: 100%;
+      padding: 10px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    button.primary:hover { background: #4338ca; }
+
+    .foot {
+      text-align: center;
+      margin-top: 20px;
+      font-size: .875rem;
+      color: #4b5563;
+    }
+    .foot a {
+      color: #4338ca;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .foot a:hover { text-decoration: underline; }
+
+    .alert {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: .875rem;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .alert.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; display: block; }
+    .alert.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; display: block; }
+  </style>
+</head>
+<body>
+  <nav>🎓 Alumni Mentorship</nav>
+
+  <main>
+    <div class="card">
+      <h2>Alumni Mentorship Login</h2>
+      <p class="sub">Sign in to continue</p>
+
+      <div id="alert" class="alert"></div>
+
+      <div class="fields">
+        <input type="text"     id="login_name" placeholder="Name" />
+        <input type="password" id="login_pass" placeholder="Password" />
+        <button class="primary" onclick="login()">Login</button>
+      </div>
+
+      <p class="foot">
+        New user? <a href="register.html">Register here</a>
+      </p>
+    </div>
+  </main>
+
+  <script>
+  async function login() {
+    const name     = document.getElementById('login_name').value.trim();
+    const password = document.getElementById('login_pass').value;
+    const alertEl  = document.getElementById('alert');
+    alertEl.className = 'alert';
+
+    if (!name || !password) {
+      alertEl.className   = 'alert error';
+      alertEl.textContent = 'Please fill in all fields.';
+      return;
+    }
+
+    /* ── Admin shortcut (client-side, no backend needed) ── */
+    if (name === 'admin' && password === 'admin123') {
+      alertEl.className   = 'alert success';
+      alertEl.textContent = 'Admin login successful! Redirecting...';
+      setTimeout(() => window.location.href = 'admin.html', 1000);
+      return;
+    }
+
+    /* ── Regular users go through the backend ── */
+    try {
+      const res  = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, password })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alertEl.className   = 'alert success';
+        alertEl.textContent = 'Login successful! Redirecting...';
+        setTimeout(() => {
+          if (data.user.role === 'mentor') {
+            window.location.href = 'mentor.html';
+          } else {
+            window.location.href = 'index.html';
+          }
+        }, 1000);
+      } else {
+        alertEl.className   = 'alert error';
+        alertEl.textContent = 'Invalid credentials. Please try again.';
+      }
+    } catch {
+      alertEl.className   = 'alert error';
+      alertEl.textContent = 'Server error. Please try again.';
+    }
+  }
+  </script>
+</body>
+</html>

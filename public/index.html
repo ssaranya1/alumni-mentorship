@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alumni Mentorship System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0eeea;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: white;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+    }
+    .logo { font-size: 1.2rem; font-weight: 800; color: #4f46e5; margin-bottom: 4px; }
+    .logo span { color: #111; }
+    .tagline { font-size: .75rem; color: #9ca3af; margin-bottom: 28px; }
+
+    .user-card {
+      background: #f5f3ff;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .avatar {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      background: #4f46e5;
+      color: white;
+      font-size: .85rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .user-name { font-size: .9rem; font-weight: 600; color: #111; }
+    .user-role { font-size: .75rem; color: #6b7280; }
+
+    .nav-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .nav-link {
+      padding: 9px 12px; border-radius: 8px;
+      font-size: .875rem; color: #4b5563;
+      cursor: pointer; border: none; background: none;
+      text-align: left; font-family: inherit;
+      transition: background .15s; width: 100%;
+    }
+    .nav-link:hover { background: #f3f4f6; }
+    .nav-link.active { background: #ede9fe; color: #4f46e5; font-weight: 600; }
+
+    .logout-btn {
+      margin-top: auto;
+      padding: 9px 12px; border-radius: 8px;
+      font-size: .875rem; color: #ef4444;
+      cursor: pointer; border: 1px solid #fee2e2;
+      background: none; font-family: inherit;
+      transition: background .15s; text-align: left;
+    }
+    .logout-btn:hover { background: #fef2f2; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+
+    .topbar {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 32px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .topbar h2 { font-size: 1rem; font-weight: 600; color: #111; }
+    .search {
+      margin-left: auto;
+      display: flex; align-items: center;
+      background: #f3f4f6; border-radius: 8px;
+      padding: 8px 14px; gap: 8px; width: 260px;
+    }
+    .search span { color: #9ca3af; font-size: .85rem; }
+    .search input {
+      border: none; background: none; outline: none;
+      font-size: .875rem; color: #111; width: 100%;
+      font-family: inherit; padding: 0;
+    }
+
+    .content { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+
+    .view { display: none; flex-direction: column; gap: 20px; }
+    .view.active { display: flex; }
+
+    .greeting h1 { font-size: 1.6rem; font-weight: 700; color: #111; margin-bottom: 4px; }
+    .greeting p  { font-size: .9rem; color: #6b7280; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .stat-card {
+      background: white; border-radius: 12px;
+      padding: 20px 24px; border: 1px solid #e5e7eb;
+    }
+    .stat-card .label {
+      font-size: .7rem; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: #9ca3af; margin-bottom: 8px;
+    }
+    .stat-card .value { font-size: 2rem; font-weight: 700; color: #4f46e5; line-height: 1; margin-bottom: 6px; }
+    .stat-card .sub { font-size: .78rem; color: #6b7280; }
+
+    .section-header { display: flex; align-items: center; justify-content: space-between; }
+    .section-header h3 { font-size: 1rem; font-weight: 600; color: #111; }
+    .view-all {
+      font-size: .8rem; color: #6b7280;
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 8px; padding: 5px 12px;
+      cursor: pointer; font-family: inherit;
+    }
+
+    .mentor-card {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .req-avatar {
+      width: 42px; height: 42px; border-radius: 10px;
+      font-size: .85rem; font-weight: 700; color: white;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .mentor-card .info { flex: 1; }
+    .mentor-card .name { font-size: .9rem; font-weight: 600; color: #111; }
+    .mentor-card .meta { font-size: .8rem; color: #6b7280; margin-top: 2px; }
+    .mentor-card button {
+      padding: 7px 16px; background: #4f46e5; color: white;
+      border: none; border-radius: 8px; font-size: .82rem;
+      font-family: inherit; cursor: pointer;
+    }
+    .mentor-card button:hover { background: #4338ca; }
+
+    .mentor-search-bar {
+      display: flex;
+      gap: 10px;
+      background: white;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      padding: 10px 14px;
+      align-items: center;
+      transition: border-color .2s;
+      width: 100%;
+    }
+    .mentor-search-bar:focus-within {
+      border-color: #6366f1;
+    }
+    .mentor-search-bar .suggest-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+    .mentor-search-bar input {
+      width: 100%;
+      padding: 8px 4px;
+      border: none;
+      border-radius: 0;
+      font-size: .95rem;
+      font-family: inherit;
+      outline: none;
+      background: transparent;
+    }
+    .mentor-search-bar button {
+      padding: 8px 20px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .mentor-search-bar button:hover { background: #4338ca; }
+
+    .form-card {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 24px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .form-card input, .form-card textarea {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: .9rem; font-family: inherit; outline: none;
+      transition: border-color .2s;
+    }
+    .form-card input:focus, .form-card textarea:focus { border-color: #6366f1; }
+    .form-card textarea { resize: vertical; min-height: 80px; }
+    .form-card button {
+      padding: 10px; background: #4f46e5; color: white;
+      border: none; border-radius: 8px; font-size: .9rem;
+      font-weight: 500; font-family: inherit; cursor: pointer;
+    }
+    .form-card button:hover { background: #4338ca; }
+
+    .gap-item {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 10px; padding: 12px 16px;
+      font-size: .875rem; color: #374151;
+    }
+
+    .skill-tag {
+      display: inline-block; padding: 4px 10px;
+      border-radius: 20px; font-size: .75rem; font-weight: 500; margin: 3px;
+    }
+    .skill-tag.mentor-skill { background: #ede9fe; color: #6d28d9; }
+    .skill-tag.student-skill { background: #d1fae5; color: #065f46; }
+
+    .skills-section {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 20px 24px;
+    }
+    .skills-section h4 {
+      font-size: .85rem; font-weight: 600; color: #6b7280;
+      text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px;
+    }
+    .skills-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .badge-pending  { font-size:.75rem; padding:3px 10px; border-radius:20px; background:#fef3c7; color:#92400e; font-weight:600; margin-left:auto; white-space:nowrap; }
+    .badge-accepted { font-size:.75rem; padding:3px 10px; border-radius:20px; background:#d1fae5; color:#065f46; font-weight:600; margin-left:auto; white-space:nowrap; }
+    .badge-rejected { font-size:.75rem; padding:3px 10px; border-radius:20px; background:#fee2e2; color:#991b1b; font-weight:600; margin-left:auto; white-space:nowrap; }
+
+    .request-row {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 14px;
+    }
+
+    .star-row { display: flex; gap: 6px; }
+    .star { font-size: 1.4rem; cursor: pointer; color: #d1d5db; transition: color .15s; }
+    .star.active { color: #f59e0b; }
+
+    .suggest-wrap { position: relative; }
+    .suggestions {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: white; border: 1px solid #d1d5db;
+      border-radius: 8px; z-index: 10;
+      max-height: 180px; overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+      display: none;
+    }
+    .suggestions.show { display: block; }
+    .suggestion-item {
+      padding: 10px 14px; cursor: pointer; font-size: .9rem;
+      transition: background .15s;
+    }
+    .suggestion-item:hover { background: #f3f4f6; }
+
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: .875rem; display: none; }
+    .alert.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; display: block; }
+    .alert.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; display: block; }
+
+    .empty { font-size: .875rem; color: #9ca3af; }
+
+    #loading-screen {
+      position: fixed; inset: 0;
+      background: #f0eeea;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .loading-box { text-align: center; }
+    .loading-box .logo-txt { font-size: 1.4rem; font-weight: 800; color: #4f46e5; margin-bottom: 12px; }
+    .loading-box .logo-txt span { color: #111; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid #e0e7ff;
+      border-top-color: #4f46e5;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loading-box">
+    <div class="logo-txt">Mentor<span>Bridge</span></div>
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<aside class="sidebar">
+  <div class="logo">Mentor<span>Bridge</span></div>
+  <div class="tagline">Alumni × Student Platform</div>
+  <div class="user-card">
+    <div class="avatar" id="sidebar-avatar">S</div>
+    <div>
+      <div class="user-name" id="sidebar-name">Loading...</div>
+      <div class="user-role">Student</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showView('dashboard')">🏠 Dashboard</button>
+    <button class="nav-link" onclick="showView('find-mentor')">🔍 Find Mentor</button>
+    <button class="nav-link" onclick="showView('send-request')">📨 Send Request</button>
+    <button class="nav-link" onclick="showView('my-requests')">📋 My Requests</button>
+    <button class="nav-link" onclick="showView('feedback')">⭐ Give Feedback</button>
+    <button class="nav-link" onclick="showView('skill-gap')">📊 Skill Gap</button>
+    <button class="nav-link" onclick="showView('mentors')">👥 All Mentors</button>
+  </div>
+  <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <h2 id="topbar-title">Dashboard</h2>
+    <div class="search">
+      <span>🔍</span>
+      <input placeholder="Search alumni, skills..." />
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Dashboard -->
+    <div class="view active" id="view-dashboard">
+      <div class="greeting">
+        <h1 id="greeting-text">Good morning 👋</h1>
+        <p>Here's what's happening with your mentorship journey.</p>
+      </div>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">Requests Sent</div>
+          <div class="value" id="stat-requests">0</div>
+          <div class="sub">Total requests</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Accepted</div>
+          <div class="value" id="stat-accepted">0</div>
+          <div class="sub">Mentors connected</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Mentors Available</div>
+          <div class="value" id="stat-mentors">0</div>
+          <div class="sub">Ready to connect</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-header" style="margin-bottom:14px;">
+          <h3>My Mentors</h3>
+          <button class="view-all" onclick="showView('my-requests')">View all</button>
+        </div>
+        <div id="dashboard-my-mentors" style="display:flex;flex-direction:column;gap:10px;">
+          <p class="empty">Loading...</p>
+        </div>
+      </div>
+      <div class="skills-section">
+        <h4>✅ Your Skills</h4>
+        <div class="skills-wrap" id="student-skills-list">
+          <span style="font-size:.85rem;color:#9ca3af;">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Find Mentor -->
+    <div class="view" id="view-find-mentor">
+      <div class="greeting">
+        <h1>Find a Mentor</h1>
+        <p>Search by skill name to find the best match.</p>
+      </div>
+      <div class="mentor-search-bar">
+        <div class="suggest-wrap">
+          <input id="skill" placeholder="Enter skill name (e.g. Python)" autocomplete="off"
+            oninput="suggestSkillsFind(this.value)" style="width:100%;" />
+          <div class="suggestions" id="skill-suggestions-find"></div>
+        </div>
+        <button onclick="findMentor()">Search</button>
+      </div>
+      <div id="find-mentor-output" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+    <!-- Send Request -->
+    <div class="view" id="view-send-request">
+      <div class="greeting">
+        <h1>Send Mentorship Request</h1>
+        <p>Search for a mentor and the skill you want to learn.</p>
+      </div>
+      <div class="form-card">
+        <div id="req-alert" class="alert"></div>
+        <div class="suggest-wrap">
+          <input id="mentorName" placeholder="Mentor name (e.g. John)" autocomplete="off"
+            oninput="suggestMentors(this.value)" />
+          <div class="suggestions" id="mentor-suggestions"></div>
+        </div>
+        <div class="suggest-wrap">
+          <input id="skillReq" placeholder="Skill name (e.g. Python)" autocomplete="off"
+            oninput="suggestSkillsReq(this.value)" />
+          <div class="suggestions" id="skill-suggestions-req"></div>
+        </div>
+        <button onclick="sendRequest()">Send Request</button>
+      </div>
+    </div>
+
+    <!-- My Requests -->
+    <div class="view" id="view-my-requests">
+      <div class="greeting">
+        <h1>My Requests</h1>
+        <p>Mentors you have requested and their response.</p>
+      </div>
+      <div id="my-requests-list" style="display:flex;flex-direction:column;gap:10px;">
+        <p class="empty">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="view" id="view-feedback">
+      <div class="greeting">
+        <h1>Give Feedback</h1>
+        <p>Rate your accepted mentors to help others.</p>
+      </div>
+      <div id="feedback-mentors" style="display:flex;flex-direction:column;gap:16px;">
+        <p class="empty">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Skill Gap -->
+    <div class="view" id="view-skill-gap">
+      <div class="greeting">
+        <h1>Skill Gap Analysis</h1>
+        <p>Find what skills you need before reaching your target.</p>
+      </div>
+      <div class="mentor-search-bar">
+        <div class="suggest-wrap">
+          <input id="sg_skill" placeholder="Target skill (e.g. Machine Learning)" autocomplete="off"
+            oninput="suggestTargetSkill(this.value)" style="width:100%;" />
+          <div class="suggestions" id="target-skill-suggestions"></div>
+        </div>
+        <button onclick="skillGap()">Check</button>
+      </div>
+      <div id="gapOutput" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+    <!-- All Mentors -->
+    <div class="view" id="view-mentors">
+      <div class="greeting">
+        <h1>All Mentors</h1>
+        <p>Everyone available on the platform.</p>
+      </div>
+      <div id="all-mentors" style="display:flex;flex-direction:column;gap:10px;">
+        <p class="empty">Loading...</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let currentUser           = null;
+  let studentSkills         = [];
+  let selectedSkillId       = null;
+  let selectedSkillReqId    = null;
+  let selectedMentorId      = null;
+  let selectedTargetSkillId = null;
+
+  const ratingMap = {};
+  const colors = ['#4f46e5','#0891b2','#059669','#d97706','#dc2626','#7c3aed'];
+
+  function getColor(name) {
+    let h = 0; for (let c of name) h += c.charCodeAt(0);
+    return colors[h % colors.length];
+  }
+  function initials(name) {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  }
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  function showView(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    const titles = {
+      'dashboard':'Dashboard','find-mentor':'Find Mentor',
+      'send-request':'Send Request','my-requests':'My Requests',
+      'feedback':'Give Feedback','skill-gap':'Skill Gap Analysis','mentors':'All Mentors'
+    };
+    document.getElementById('topbar-title').textContent = titles[view] || '';
+    const idx = ['dashboard','find-mentor','send-request','my-requests','feedback','skill-gap','mentors'].indexOf(view);
+    document.querySelectorAll('.nav-link')[idx]?.classList.add('active');
+    if (view === 'feedback') loadFeedbackMentors();
+  }
+
+  window.onload = async () => {
+    try {
+      const res = await fetch('/me');
+      currentUser = await res.json();
+    } catch (e) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (!currentUser) { window.location.href = 'login.html'; return; }
+    if (currentUser.role === 'mentor') { window.location.href = 'mentor.html'; return; }
+
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('sidebar-avatar').textContent = initials(currentUser.name);
+    document.getElementById('sidebar-avatar').style.background = getColor(currentUser.name);
+    document.getElementById('sidebar-name').textContent = currentUser.name;
+    document.getElementById('greeting-text').textContent =
+      `${getGreeting()}, ${currentUser.name.split(' ')[0]} 👋`;
+
+    await loadStudentSkills();
+    loadAllMentors();
+    loadMyRequests();
+  };
+
+  async function loadStudentSkills() {
+    const res  = await fetch(`/student-skills/${currentUser.user_id}`);
+    const data = await res.json();
+    studentSkills = data.map(s => s.skill_id);
+    const el = document.getElementById('student-skills-list');
+    el.innerHTML = data.length
+      ? data.map(s => `<span class="skill-tag student-skill">${s.skill_name}</span>`).join('')
+      : '<span style="font-size:.85rem;color:#9ca3af;">No skills recorded yet.</span>';
+  }
+
+  async function loadAllMentors() {
+    const res  = await fetch('/analytics');
+    const data = await res.json();
+    document.getElementById('stat-mentors').textContent = data.length;
+
+    const mentorSkillsMap = {};
+    await Promise.all(data.map(async d => {
+      const r = await fetch(`/mentor-skills/${d.user_id}`);
+      mentorSkillsMap[d.user_id] = await r.json();
+    }));
+
+    const makeCard = d => {
+      const skills = mentorSkillsMap[d.user_id] || [];
+      const skillTags = skills.length
+        ? skills.map(s => `<span class="skill-tag mentor-skill">${s.skill_name}</span>`).join('')
+        : '<span style="font-size:.78rem;color:#9ca3af;">No skills listed</span>';
+      return `
+        <div class="mentor-card" style="flex-direction:column;align-items:flex-start;gap:10px;">
+          <div style="display:flex;align-items:center;gap:14px;width:100%;">
+            <div class="req-avatar" style="background:${getColor(d.name)}">${initials(d.name)}</div>
+            <div class="info">
+              <div class="name">${d.name}</div>
+              <div class="meta">ID: ${d.user_id} &nbsp;·&nbsp; ⭐ ${d.rating ? parseFloat(d.rating).toFixed(1) : 'No rating'} &nbsp;·&nbsp; 👥 ${d.students||0} students</div>
+            </div>
+            <button onclick="prefillRequest(${d.user_id}, '${d.name}')">Connect</button>
+          </div>
+          <div>
+            <div style="font-size:.75rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">Skills</div>
+            <div class="skills-wrap">${skillTags}</div>
+          </div>
+        </div>`;
+    };
+
+    document.getElementById('all-mentors').innerHTML =
+      data.length ? data.map(makeCard).join('') : '<p class="empty">No mentors found.</p>';
+  }
+
+  async function loadMyRequests() {
+    const res  = await fetch(`/requests/sent/${currentUser.user_id}`);
+    const data = await res.json();
+    const out  = document.getElementById('my-requests-list');
+    const dash = document.getElementById('dashboard-my-mentors');
+
+    document.getElementById('stat-requests').textContent = data.length;
+    document.getElementById('stat-accepted').textContent = data.filter(r => r.status === 'accepted').length;
+
+    const rowHTML = data.length
+      ? data.map(r => `
+          <div class="request-row">
+            <div class="req-avatar" style="background:${getColor(r.mentor_name)}">${initials(r.mentor_name)}</div>
+            <div style="flex:1;">
+              <div style="font-size:.9rem;font-weight:600;color:#111;margin-bottom:3px;">${r.mentor_name}</div>
+              <div style="font-size:.8rem;color:#6b7280;">⭐ ${r.rating ? parseFloat(r.rating).toFixed(1) : 'No rating'} &nbsp;·&nbsp; ID: ${r.mentor_id}</div>
+              ${r.skill_name
+                ? `<div style="margin-top:5px;"><span style="display:inline-block;padding:3px 10px;background:#ede9fe;color:#6d28d9;border-radius:20px;font-size:.73rem;font-weight:600;">📚 ${r.skill_name}</span></div>`
+                : ''}
+            </div>
+            <span class="badge-${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>
+          </div>`).join('')
+      : '<p class="empty">You have not sent any requests yet.</p>';
+
+    out.innerHTML  = rowHTML;
+    dash.innerHTML = rowHTML;
+  }
+
+  // ── SUGGESTIONS ───────────────────────────────────────────
+
+  async function suggestSkillsFind(val) {
+    const box = document.getElementById('skill-suggestions-find');
+    selectedSkillId = null;
+    if (!val.trim()) { box.className = 'suggestions'; return; }
+    const res  = await fetch(`/skill-by-name/${encodeURIComponent(val)}`);
+    const data = await res.json();
+    if (!data.length) { box.className = 'suggestions'; return; }
+    box.innerHTML = data.map(s =>
+      `<div class="suggestion-item" onclick="selectSkillFind(${s.skill_id},'${s.skill_name}')">${s.skill_name}</div>`
+    ).join('');
+    box.className = 'suggestions show';
+  }
+
+  function selectSkillFind(id, name) {
+    selectedSkillId = id;
+    document.getElementById('skill').value = name;
+    document.getElementById('skill-suggestions-find').className = 'suggestions';
+  }
+
+  async function suggestSkillsReq(val) {
+    const box = document.getElementById('skill-suggestions-req');
+    selectedSkillReqId = null;
+    if (!val.trim()) { box.className = 'suggestions'; return; }
+    const res  = await fetch(`/skill-by-name/${encodeURIComponent(val)}`);
+    const data = await res.json();
+    if (!data.length) { box.className = 'suggestions'; return; }
+    box.innerHTML = data.map(s =>
+      `<div class="suggestion-item" onclick="selectSkillReq(${s.skill_id},'${s.skill_name}')">${s.skill_name}</div>`
+    ).join('');
+    box.className = 'suggestions show';
+  }
+
+  function selectSkillReq(id, name) {
+    selectedSkillReqId = id;
+    document.getElementById('skillReq').value = name;
+    document.getElementById('skill-suggestions-req').className = 'suggestions';
+  }
+
+  async function suggestMentors(val) {
+    const box = document.getElementById('mentor-suggestions');
+    selectedMentorId = null;
+    if (!val.trim()) { box.className = 'suggestions'; return; }
+    const res  = await fetch('/analytics');
+    const data = await res.json();
+    const filtered = data.filter(m => m.name.toLowerCase().includes(val.toLowerCase()));
+    if (!filtered.length) { box.className = 'suggestions'; return; }
+    box.innerHTML = filtered.map(m =>
+      `<div class="suggestion-item" onclick="selectMentor(${m.user_id}, '${m.name}')">${m.name}</div>`
+    ).join('');
+    box.className = 'suggestions show';
+  }
+
+  function selectMentor(id, name) {
+    selectedMentorId = id;
+    document.getElementById('mentorName').value = name;
+    document.getElementById('mentor-suggestions').className = 'suggestions';
+  }
+
+  async function suggestTargetSkill(val) {
+    const box = document.getElementById('target-skill-suggestions');
+    selectedTargetSkillId = null;
+    if (!val.trim()) { box.className = 'suggestions'; return; }
+    const res  = await fetch(`/skill-by-name/${encodeURIComponent(val)}`);
+    const data = await res.json();
+    if (!data.length) { box.className = 'suggestions'; return; }
+    box.innerHTML = data.map(s =>
+      `<div class="suggestion-item" onclick="selectTargetSkill(${s.skill_id},'${s.skill_name}')">${s.skill_name}</div>`
+    ).join('');
+    box.className = 'suggestions show';
+  }
+
+  function selectTargetSkill(id, name) {
+    selectedTargetSkillId = id;
+    document.getElementById('sg_skill').value = name;
+    document.getElementById('target-skill-suggestions').className = 'suggestions';
+  }
+
+  // ── ACTIONS ───────────────────────────────────────────────
+
+  function prefillRequest(mentorId, mentorName, skillId, skillName) {
+    selectedMentorId = mentorId;
+    document.getElementById('mentorName').value = mentorName;
+    if (skillId && skillName) {
+      selectedSkillReqId = skillId;
+      document.getElementById('skillReq').value = skillName;
+    }
+    showView('send-request');
+  }
+
+  async function findMentor() {
+    const skillName = document.getElementById('skill').value.trim();
+    const out = document.getElementById('find-mentor-output');
+    if (!skillName) { out.innerHTML = '<p class="empty">Please enter a skill name.</p>'; return; }
+
+    const res    = await fetch(`/skill-by-name/${encodeURIComponent(skillName)}`);
+    const skills = await res.json();
+    if (!skills.length) { out.innerHTML = '<p class="empty">Skill not found.</p>'; return; }
+
+    const skill_id = selectedSkillId || skills[0].skill_id;
+    const res2 = await fetch(`/match/${skill_id}`);
+    const data = await res2.json();
+    out.innerHTML = data.length
+      ? data.map(m => `
+          <div class="mentor-card">
+            <div class="req-avatar" style="background:${getColor(m.name)}">${initials(m.name)}</div>
+            <div class="info">
+              <div class="name">${m.name}</div>
+              <div class="meta">ID: ${m.user_id} &nbsp;·&nbsp; ⭐ ${m.rating ? parseFloat(m.rating).toFixed(1) : 'No rating'}</div>
+            </div>
+            <button onclick="prefillRequest(${m.user_id}, '${m.name}', ${skill_id}, '${skills[0].skill_name}')">Connect</button>
+          </div>`).join('')
+      : '<p class="empty">No mentors found for this skill.</p>';
+  }
+
+  async function sendRequest() {
+    const alertEl = document.getElementById('req-alert');
+    alertEl.className = 'alert';
+
+    if (!selectedMentorId || !selectedSkillReqId) {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '⚠ Please select a mentor and a skill from the suggestions.';
+      return;
+    }
+
+    if (studentSkills.includes(parseInt(selectedSkillReqId))) {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '⚠ You already have this skill!';
+      return;
+    }
+
+    const existingRes  = await fetch(`/requests/sent/${currentUser.user_id}`);
+    const existingReqs = await existingRes.json();
+    const isDuplicate  = existingReqs.some(r =>
+      parseInt(r.mentor_id) === parseInt(selectedMentorId) &&
+      parseInt(r.skill_id)  === parseInt(selectedSkillReqId)
+    );
+    if (isDuplicate) {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '⚠ You already have a request for this course with this mentor!';
+      return;
+    }
+
+    const mentorSkillsRes  = await fetch(`/mentor-skills/${selectedMentorId}`);
+    const mentorSkillsData = await mentorSkillsRes.json();
+    const mentorSkillIds   = mentorSkillsData.map(s => s.skill_id);
+
+    if (!mentorSkillIds.includes(parseInt(selectedSkillReqId))) {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '⚠ This mentor does not teach that skill.';
+      return;
+    }
+
+    const res  = await fetch('/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_id: currentUser.user_id,
+        mentor_id:  selectedMentorId,
+        skill_id:   selectedSkillReqId
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      alertEl.className = 'alert success';
+      alertEl.textContent = '✓ Request sent successfully!';
+    } else {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '⚠ ' + (data.error || 'Failed to send request.');
+    }
+
+    document.getElementById('mentorName').value = '';
+    document.getElementById('skillReq').value   = '';
+    selectedMentorId   = null;
+    selectedSkillReqId = null;
+    loadMyRequests();
+  }
+
+  // ── FEEDBACK ──────────────────────────────────────────────
+
+  async function loadFeedbackMentors() {
+    const res  = await fetch(`/requests/sent/${currentUser.user_id}`);
+    const data = await res.json();
+    const accepted = data.filter(r => r.status === 'accepted');
+    const out = document.getElementById('feedback-mentors');
+
+    if (!accepted.length) {
+      out.innerHTML = '<p class="empty">You have no accepted mentors to rate yet.</p>';
+      return;
+    }
+
+    out.innerHTML = accepted.map(r => {
+      const cardId = `${r.mentor_id}-${r.skill_id}`;
+      return `
+        <div class="form-card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+            <div class="req-avatar" style="background:${getColor(r.mentor_name)};width:40px;height:40px;border-radius:10px;font-size:.85rem;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;">
+              ${initials(r.mentor_name)}
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:.95rem;">${r.mentor_name}</div>
+              <div style="font-size:.8rem;color:#6b7280;">Mentor ID: ${r.mentor_id}</div>
+              ${r.skill_name
+                ? `<span style="display:inline-block;margin-top:5px;padding:3px 10px;background:#ede9fe;color:#6d28d9;border-radius:20px;font-size:.73rem;font-weight:600;">📚 ${r.skill_name}</span>`
+                : ''}
+            </div>
+          </div>
+          <div id="fb-alert-${cardId}" class="alert"></div>
+          <div>
+            <div style="font-size:.82rem;font-weight:600;color:#374151;margin-bottom:6px;">Rating</div>
+            <div class="star-row" id="stars-${cardId}">
+              ${[1,2,3,4,5].map(i =>
+                `<span class="star" onclick="setRating('${cardId}',${i})" id="star-${cardId}-${i}">★</span>`
+              ).join('')}
+            </div>
+          </div>
+          <textarea id="comment-${cardId}" placeholder="Write your feedback (optional)..."></textarea>
+          <button onclick="submitFeedback(${r.mentor_id}, ${r.skill_id || 'null'}, '${cardId}')">Submit Feedback</button>
+        </div>`;
+    }).join('');
+  }
+
+  function setRating(cardId, val) {
+    ratingMap[cardId] = val;
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById(`star-${cardId}-${i}`).classList.toggle('active', i <= val);
+    }
+  }
+
+  async function submitFeedback(mentor_id, skill_id, cardId) {
+    const comment = document.getElementById(`comment-${cardId}`).value.trim();
+    const alertEl = document.getElementById(`fb-alert-${cardId}`);
+    alertEl.className = 'alert';
+    const rating = ratingMap[cardId] || 0;
+
+    if (!rating) {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '⚠ Please select a star rating.';
+      return;
+    }
+
+    const res  = await fetch('/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mentor_id, student_id: currentUser.user_id, skill_id, rating, comment })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      alertEl.className = 'alert success';
+      alertEl.textContent = '✓ Feedback submitted! Thank you.';
+      ratingMap[cardId] = 0;
+      loadAllMentors();
+    } else {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '✗ Failed to submit. Try again.';
+    }
+  }
+
+  async function skillGap() {
+    const out = document.getElementById('gapOutput');
+    if (!selectedTargetSkillId) {
+      out.innerHTML = '<p class="empty">Please select a skill from the suggestions.</p>'; return;
+    }
+    const res  = await fetch(`/skill-gap/${currentUser.user_id}/${selectedTargetSkillId}`);
+    const data = await res.json();
+    out.innerHTML = data.length
+      ? data.map(item => `<div class="gap-item">• ${item.skill_name}</div>`).join('')
+      : '<p class="empty">No skill gaps found — you\'re ready!</p>';
+  }
+
+  async function logout() {
+    await fetch('/logout', { method: 'POST' });
+    window.location.href = 'login.html';
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.suggest-wrap')) {
+      document.getElementById('skill-suggestions-find').className = 'suggestions';
+      document.getElementById('skill-suggestions-req').className  = 'suggestions';
+      document.getElementById('mentor-suggestions').className      = 'suggestions';
+      document.getElementById('target-skill-suggestions').className = 'suggestions';
+    }
+  });
+</script>
+</body>
+</html>

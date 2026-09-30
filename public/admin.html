@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard — Alumni Mentorship</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 240px;
+      background: white;
+      color: #c7d2fe;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+    }
+    .sidebar .brand {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: black;
+      padding: 0 20px 24px;
+      border-bottom: 1px solid #3730a3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar nav { flex: 1; padding-top: 16px; }
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 20px;
+      color: black;
+      text-decoration: none;
+      font-size: .92rem;
+      border-left: 3px solid transparent;
+      transition: background .15s, color .15s, border-color .15s;
+      cursor: pointer;
+    }
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      background: rgba(99,102,241,.18);
+      color: black;
+      border-left-color: #818cf8;
+    }
+    .sidebar .logout-btn {
+      margin: 16px;
+      padding: 9px 14px;
+      background: #4338ca;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .88rem;
+      font-weight: 500;
+      transition: background .2s;
+    }
+    .sidebar .logout-btn:hover { background: #3730a3; }
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      background: white;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar h1 { font-size: 1.15rem; font-weight: 700; color: #1e293b; }
+    .topbar .admin-badge {
+      background: #e0e7ff;
+      color: #4338ca;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+    .content { padding: 28px; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .stat-card .icon { font-size: 1.6rem; margin-bottom: 4px; }
+    .stat-card .val { font-size: 2rem; font-weight: 700; color: #4f46e5; }
+    .stat-card .label { font-size: .82rem; color: #6b7280; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    thead th {
+      text-align: left;
+      padding: 9px 12px;
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tbody tr { border-top: 1px solid #f1f5f9; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody td { padding: 10px 12px; }
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    .badge.mentor   { background: #dbeafe; color: #1d4ed8; }
+    .badge.student  { background: #dcfce7; color: #15803d; }
+    .badge.accepted { background: #dcfce7; color: #15803d; }
+    .badge.pending  { background: #fef9c3; color: #a16207; }
+    .badge.rejected { background: #fee2e2; color: #dc2626; }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .toolbar input, .toolbar select {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .toolbar input:focus, .toolbar select:focus { border-color: #6366f1; }
+    .toolbar input { flex: 1; min-width: 180px; }
+    .btn-sm {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn-sm:hover { opacity: .8; }
+    .btn-accept { background: #dcfce7; color: #15803d; }
+    .btn-reject { background: #fee2e2; color: #dc2626; }
+    .btn-delete { background: #fee2e2; color: #dc2626; }
+    .btn-view   { background: #e0e7ff; color: #4338ca; }
+    /* ── Add User form ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: .8rem; font-weight: 600; color: #475569; }
+    .form-group input, .form-group select {
+      padding: 9px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: #6366f1; }
+    .form-hint { font-size: .74rem; color: #9ca3af; margin-top: 3px; }
+    .btn-primary {
+      padding: 9px 18px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { background: #4338ca; }
+    #toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      background: #1e1b4b;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: .88rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .3s, transform .3s;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    .bar-wrap { margin-bottom: 14px; }
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: .83rem;
+      margin-bottom: 4px;
+      color: #374151;
+    }
+    .bar-track {
+      background: #e0e7ff;
+      border-radius: 99px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #6366f1, #818cf8);
+      transition: width .8s ease;
+    }
+    .empty {
+      text-align: center;
+      color: #9ca3af;
+      padding: 36px 0;
+      font-size: .9rem;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.4);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 14px;
+      padding: 28px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; }
+    .modal p  { font-size: .9rem; color: #374151; margin-bottom: 8px; }
+    .modal .close-btn {
+      margin-top: 18px;
+      padding: 8px 18px;
+      background: #e0e7ff;
+      color: #4338ca;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">🎓 Mentorship Admin</div>
+  <nav>
+    <a onclick="showSection('dashboard')"    class="active" id="nav-dashboard">    📊 Dashboard</a>
+    <a onclick="showSection('users')"                       id="nav-users">        👥 Users</a>
+    <a onclick="showSection('mentorships')"                 id="nav-mentorships">  🤝 Mentorships</a>
+    <a onclick="showSection('feedback')"                    id="nav-feedback">     ⭐ Feedback</a>
+    <a onclick="showSection('analytics')"                   id="nav-analytics">    📈 Analytics</a>
+    <a onclick="showSection('adduser')"                     id="nav-adduser">      ➕ Add User</a>
+  </nav>
+  <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <h1 id="page-title">Dashboard Overview</h1>
+    <span class="admin-badge">⚙️ Admin</span>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="section-dashboard">
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="icon">👥</div><div class="val" id="stat-users">—</div><div class="label">Total Users</div></div>
+        <div class="stat-card"><div class="icon">🧑‍🏫</div><div class="val" id="stat-mentors">—</div><div class="label">Mentors</div></div>
+        <div class="stat-card"><div class="icon">🧑‍🎓</div><div class="val" id="stat-students">—</div><div class="label">Students</div></div>
+        <div class="stat-card"><div class="icon">🤝</div><div class="val" id="stat-mentorships">—</div><div class="label">Mentorships</div></div>
+        <div class="stat-card"><div class="icon">✅</div><div class="val" id="stat-accepted">—</div><div class="label">Accepted</div></div>
+        <div class="stat-card"><div class="icon">⭐</div><div class="val" id="stat-feedback">—</div><div class="label">Feedback Given</div></div>
+      </div>
+      <div class="card">
+        <h2>📋 Recent Mentorship Requests</h2>
+        <table>
+          <thead><tr><th>#</th><th>Student</th><th>Mentor</th><th>Status</th></tr></thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section" id="section-users">
+      <div class="card">
+        <h2>👥 All Users</h2>
+        <div class="toolbar">
+          <input type="text" id="user-search" placeholder="🔍 Search by name…" oninput="filterUsers()" />
+          <select id="user-role-filter" onchange="filterUsers()">
+            <option value="">All roles</option>
+            <option value="mentor">Mentor</option>
+            <option value="student">Student</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MENTORSHIPS -->
+    <div class="section" id="section-mentorships">
+      <div class="card">
+        <h2>🤝 All Mentorship Requests</h2>
+        <div class="toolbar">
+          <input type="text" id="ment-search" placeholder="🔍 Search…" oninput="filterMentorships()" />
+          <select id="ment-status-filter" onchange="filterMentorships()">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Student</th><th>Mentor</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="ment-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="section" id="section-feedback">
+      <div class="card">
+        <h2>⭐ All Feedback</h2>
+        <table>
+          <thead><tr><th>Mentor</th><th>Student</th><th>Rating</th><th>Comment</th></tr></thead>
+          <tbody id="feedback-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="section" id="section-analytics">
+      <div class="card">
+        <h2>📈 Mentor Performance</h2>
+        <div id="analytics-bars"></div>
+      </div>
+      <div class="card">
+        <h2>📋 Detailed Table</h2>
+        <table>
+          <thead><tr><th>Mentor</th><th>Students</th><th>Avg Rating</th><th>Session Hours</th></tr></thead>
+          <tbody id="analytics-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADD USER — now includes User ID field -->
+    <div class="section" id="section-adduser">
+      <div class="card">
+        <h2>➕ Add New User</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>User ID</label>
+            <input type="number" id="new-userid" placeholder="e.g. 101" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="new-name" placeholder="Full name" />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="new-role">
+              <option value="student">Student</option>
+              <option value="mentor">Mentor</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="addUser()">Add User</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div class="modal-overlay" id="user-modal">
+  <div class="modal">
+    <h3 id="modal-title">User Details</h3>
+    <div id="modal-body"></div>
+    <button class="close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+let allUsers        = [];
+let allMentorships  = [];
+let allFeedback     = [];
+let allAnalytics    = [];
+
+/* ── Navigation — FIX 1: refresh recent mentorships on dashboard visit ── */
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+
+  const titles = {
+    dashboard:   'Dashboard Overview',
+    users:       'User Management',
+    mentorships: 'Mentorship Requests',
+    feedback:    'Feedback & Ratings',
+    analytics:   'Analytics',
+    adduser:     'Add New User'
+  };
+  document.getElementById('page-title').textContent = titles[name] || '';
+
+  /* Re-render dashboard stats & recent list every time it's visited */
+  if (name === 'dashboard') {
+    refreshDashboard();
+  }
+  if (name === 'feedback') {
+    loadFeedback();
+  }
+  if (name === 'analytics') {
+    loadAnalytics();
+  }
+}
+
+function toast(msg, dur = 2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function logout() {
+  if (confirm('Log out of admin panel?')) {
+    window.location.href = 'login.html';
+  }
+}
+
+async function apiFetch(url) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+async function apiPost(url, body) {
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+/* ── FIX 1: Separate dashboard refresh that re-fetches mentorships ── */
+async function refreshDashboard() {
+  await loadAllMentorships();
+  const ana = await apiFetch('/analytics');
+  updateStats(ana);
+}
+
+async function loadAllMentorships() {
+  const data = await apiFetch('/admin/mentorships');
+  allMentorships = data || [];
+  return allMentorships;
+}
+async function loadUsers() {
+  const data = await apiFetch('/admin/users');
+  allUsers = data || [];
+  renderUsers(allUsers);
+  const ana = await apiFetch('/analytics');
+  updateStats(ana);
+}
+
+/* ── FIX 1: updateStats now always re-renders the recent tbody ── */
+function updateStats(ana) {
+  const students = allUsers.filter(u => u.role === 'student').length;
+  const mentors  = (ana || allAnalytics || []).length;
+  const accepted = allMentorships.filter(m => m.status === 'accepted').length;
+
+  document.getElementById('stat-users').textContent       = allUsers.length;
+  document.getElementById('stat-mentors').textContent     = mentors;
+  document.getElementById('stat-students').textContent    = students;
+  document.getElementById('stat-mentorships').textContent = allMentorships.length;
+  document.getElementById('stat-accepted').textContent    = accepted;
+  document.getElementById('stat-feedback').textContent    = allFeedback.length;
+
+  /* Recent 6 — always rebuild from current allMentorships */
+  const tbody  = document.getElementById('recent-tbody');
+  const recent = allMentorships.slice(0, 6);
+  tbody.innerHTML = recent.length
+    ? recent.map((m, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${m.student_name}</td>
+        <td>${m.mentor_name}</td>
+        <td><span class="badge ${m.status}">${m.status}</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="empty">No data available</td></tr>';
+}
+
+function renderUsers(list) {
+  const tbody = document.getElementById('users-tbody');
+  tbody.innerHTML = list.length
+    ? list.map(u => `
+      <tr>
+        <td>${u.user_id}</td>
+        <td>${u.name}</td>
+        <td><span class="badge ${u.role}">${u.role}</span></td>
+        <td>
+          <button class="btn-sm btn-view" onclick="viewUser(${u.user_id}, '${u.role}')">View</button>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="empty">No users found</td></tr>';
+}
+
+function filterUsers() {
+  const q    = document.getElementById('user-search').value.toLowerCase();
+  const role = document.getElementById('user-role-filter').value;
+  renderUsers(allUsers.filter(u =>
+    (!q    || u.name.toLowerCase().includes(q)) &&
+    (!role || u.role === role)
+  ));
+}
+
+function renderMentorships(list) {
+  const tbody = document.getElementById('ment-tbody');
+  tbody.innerHTML = list.length
+    ? list.map((m, i) => `
+      <tr>
+        <td>${m.mentorship_id || (i + 1)}</td>
+        <td>${m.student_name}</td>
+        <td>${m.mentor_name}</td>
+        <td><span class="badge ${m.status}">${m.status}</span></td>
+        <td>
+          ${m.status === 'pending' && m.mentorship_id ? `
+            <button class="btn-sm btn-accept" onclick="updateStatus(${m.mentorship_id},'accepted')">Accept</button>
+            <button class="btn-sm btn-reject" onclick="updateStatus(${m.mentorship_id},'rejected')">Reject</button>
+          ` : '—'}
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="empty">No mentorships found</td></tr>';
+}
+
+function filterMentorships() {
+  const q      = document.getElementById('ment-search').value.toLowerCase();
+  const status = document.getElementById('ment-status-filter').value;
+  renderMentorships(allMentorships.filter(m =>
+    (!q      || m.student_name.toLowerCase().includes(q) || m.mentor_name.toLowerCase().includes(q)) &&
+    (!status || m.status === status)
+  ));
+}
+
+async function updateStatus(id, status) {
+  const res = await apiPost('/request/update', { mentorship_id: id, status });
+  if (res && res.success) {
+    toast(`✅ Request ${status}`);
+    const row = allMentorships.find(m => m.mentorship_id === id);
+    if (row) row.status = status;
+    filterMentorships();
+    updateStats(null);
+  } else {
+    toast('❌ Update failed');
+  }
+}
+
+/* ── FIX 2: Feedback now fetches per-mentor feedback with real student names ── */
+async function loadFeedback() {
+  const ana = await apiFetch('/analytics');
+  allFeedback = [];
+
+  for (const m of (ana || [])) {
+    /* Try dedicated feedback endpoint first */
+    const fb = await apiFetch('/feedback/' + m.user_id);
+    if (fb && fb.length) {
+      fb.forEach(f => {
+        allFeedback.push({
+          mentor:  m.name,
+          student: f.student_name || f.name || '—',
+          rating:  f.rating != null ? Number(f.rating).toFixed(1) : '—',
+          comment: f.comment || f.feedback || '—'
+        });
+      });
+    } else {
+      /* Fallback: show aggregated row from analytics */
+      allFeedback.push({
+        mentor:  m.name,
+        student: '—',
+        rating:  m.rating != null ? Number(m.rating).toFixed(1) : '—',
+        comment: 'No individual feedback records found'
+      });
+    }
+  }
+
+  const tbody = document.getElementById('feedback-tbody');
+  tbody.innerHTML = allFeedback.length
+    ? allFeedback.map(f => `
+      <tr>
+        <td>${f.mentor}</td>
+        <td>${f.student}</td>
+        <td>${f.rating !== '—' ? f.rating + ' ' + '⭐'.repeat(Math.min(5, Math.round(f.rating))) : '—'}</td>
+        <td>${f.comment}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="empty">No feedback yet</td></tr>';
+}
+
+async function loadAnalytics() {
+  const ana = await apiFetch('/analytics');
+  allAnalytics = ana || [];
+
+  const maxStudents = Math.max(1, ...allAnalytics.map(m => m.students || 0));
+  const barsEl  = document.getElementById('analytics-bars');
+  const tbodyEl = document.getElementById('analytics-tbody');
+
+  barsEl.innerHTML = allAnalytics.length
+    ? allAnalytics.map(m => {
+        const pct = ((m.students || 0) / maxStudents * 100).toFixed(1);
+        return `
+          <div class="bar-wrap">
+            <div class="bar-label">
+              <span>${m.name}</span>
+              <span>${m.students || 0} student${m.students !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          </div>`;
+      }).join('')
+    : '<p class="empty">No analytics data</p>';
+
+  tbodyEl.innerHTML = allAnalytics.length
+    ? allAnalytics.map(m => `
+      <tr>
+        <td>${m.name}</td>
+        <td>${m.students || 0}</td>
+        <td>${m.rating ? Number(m.rating).toFixed(2) : '—'}</td>
+        <td>${m.hours || '—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="empty">No data</td></tr>';
+}
+
+/* ── FIX 3: addUser now sends user_id if provided ── */
+async function addUser() {
+  const name   = document.getElementById('new-name').value.trim();
+  const role   = document.getElementById('new-role').value;
+  const rawId  = document.getElementById('new-userid').value.trim();
+  const userId = rawId ? parseInt(rawId, 10) : null;
+
+  if (!name) { toast('⚠️ Please enter a name'); return; }
+  if (rawId && isNaN(userId)) { toast('⚠️ User ID must be a number'); return; }
+
+  const payload = { name, role };
+  if (userId) payload.user_id = userId;
+
+  const res = await apiPost('/addUser', payload);
+  if (res === 'User Added' || (res && res !== null)) {
+    toast(`✅ User "${name}" added as ${role}${userId ? ' (ID: ' + userId + ')' : ''}`);
+    document.getElementById('new-name').value   = '';
+    document.getElementById('new-userid').value = '';
+    loadUsers();
+  } else {
+    toast('❌ Failed to add user');
+  }
+}
+
+async function viewUser(user_id, role) {
+  document.getElementById('modal-title').textContent = `User #${user_id} — ${role}`;
+  document.getElementById('user-modal').classList.add('open');
+  document.getElementById('modal-body').innerHTML = '<p>Loading…</p>';
+
+  let html = '';
+  if (role === 'mentor') {
+    const [skills, students] = await Promise.all([
+      apiFetch('/mentor-skills/' + user_id),
+      apiFetch('/my-students/' + user_id)
+    ]);
+    html += `<p><strong>Skills:</strong> ${(skills || []).map(s => s.skill_name).join(', ') || 'None'}</p>`;
+    html += `<p><strong>Accepted Students:</strong></p>`;
+    if ((students || []).length) {
+      students.forEach(s => {
+        html += `<p style="margin-left:12px">→ ${s.name} — <span class="badge student">student</span> 
+                 &nbsp;📘 <em>${s.skill_name || 'N/A'}</em></p>`;
+      });
+    } else {
+      html += '<p style="margin-left:12px;color:#9ca3af">No accepted students</p>';
+    }
+  } else {
+    const [skills, requests] = await Promise.all([
+      apiFetch('/student-skills/' + user_id),
+      apiFetch('/requests/sent/' + user_id)
+    ]);
+    html += `<p><strong>Skills:</strong> ${(skills || []).map(s => s.skill_name).join(', ') || 'None'}</p>`;
+    html += `<p><strong>Mentorship Requests:</strong></p>`;
+    if ((requests || []).length) {
+      requests.forEach(r => {
+        html += `<p style="margin-left:12px">→ ${r.mentor_name} — <span class="badge ${r.status}">${r.status}</span>
+                 &nbsp;📘 <em>${r.skill_name || 'N/A'}</em></p>`;
+      });
+    } else {
+      html += '<p style="margin-left:12px;color:#9ca3af">No requests sent</p>';
+    }
+  }
+  document.getElementById('modal-body').innerHTML = html;
+}
+
+function closeModal() {
+  document.getElementById('user-modal').classList.remove('open');
+}
+
+document.getElementById('user-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ── Init ── */
+(async function init() {
+  await loadAllMentorships();
+  await Promise.all([loadUsers(), loadFeedback(), loadAnalytics()]);
+  renderMentorships(allMentorships);
+  updateStats(allAnalytics);
+})();
+</script>
+</body>
+</html>

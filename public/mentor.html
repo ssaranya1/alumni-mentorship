@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mentor Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0eeea;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: white;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+    }
+    .logo { font-size: 1.2rem; font-weight: 800; color: #059669; margin-bottom: 4px; }
+    .logo span { color: #111; }
+    .tagline { font-size: .75rem; color: #9ca3af; margin-bottom: 28px; }
+
+    .user-card {
+      background: #ecfdf5;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .avatar {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      background: #059669;
+      color: white;
+      font-size: .85rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .user-name { font-size: .9rem; font-weight: 600; color: #111; }
+    .user-role { font-size: .75rem; color: #6b7280; }
+
+    .nav-links { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .nav-link {
+      padding: 9px 12px; border-radius: 8px;
+      font-size: .875rem; color: #4b5563;
+      cursor: pointer; border: none; background: none;
+      text-align: left; font-family: inherit;
+      transition: background .15s; width: 100%;
+    }
+    .nav-link:hover { background: #f3f4f6; }
+    .nav-link.active { background: #d1fae5; color: #065f46; font-weight: 600; }
+
+    .logout-btn {
+      margin-top: auto;
+      padding: 9px 12px; border-radius: 8px;
+      font-size: .875rem; color: #ef4444;
+      cursor: pointer; border: 1px solid #fee2e2;
+      background: none; font-family: inherit;
+      transition: background .15s; text-align: left;
+    }
+    .logout-btn:hover { background: #fef2f2; }
+
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+
+    .topbar {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 32px;
+      display: flex; align-items: center;
+    }
+    .topbar h2 { font-size: 1rem; font-weight: 600; color: #111; }
+
+    .content { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+
+    .view { display: none; flex-direction: column; gap: 20px; }
+    .view.active { display: flex; }
+
+    .greeting h1 { font-size: 1.6rem; font-weight: 700; color: #111; margin-bottom: 4px; }
+    .greeting p  { font-size: .9rem; color: #6b7280; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .stat-card {
+      background: white; border-radius: 12px;
+      padding: 20px 24px; border: 1px solid #e5e7eb;
+    }
+    .stat-card .label {
+      font-size: .7rem; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: #9ca3af; margin-bottom: 8px;
+    }
+    .stat-card .value { font-size: 2rem; font-weight: 700; color: #059669; line-height: 1; margin-bottom: 6px; }
+    .stat-card .sub { font-size: .78rem; color: #6b7280; }
+
+    .list-card {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .mini-avatar {
+      width: 40px; height: 40px; border-radius: 10px;
+      font-size: .82rem; font-weight: 700; color: white;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .list-card .info { flex: 1; }
+    .list-card .name { font-size: .9rem; font-weight: 600; color: #111; }
+    .list-card .meta { font-size: .8rem; color: #6b7280; margin-top: 2px; }
+
+    .form-card {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 24px;
+      display: flex; flex-direction: column; gap: 12px;
+      max-width: 480px;
+    }
+    .form-card input {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: .9rem; font-family: inherit; outline: none;
+      transition: border-color .2s;
+    }
+    .form-card input:focus { border-color: #059669; }
+    .form-card button {
+      padding: 10px; background: #059669; color: white;
+      border: none; border-radius: 8px; font-size: .9rem;
+      font-weight: 500; font-family: inherit; cursor: pointer;
+    }
+    .form-card button:hover { background: #047857; }
+
+    .section-title { font-size: 1rem; font-weight: 600; color: #111; }
+
+    .btn-accept {
+      padding: 6px 14px; background: #059669; color: white;
+      border: none; border-radius: 8px; font-size: .82rem;
+      font-family: inherit; cursor: pointer;
+    }
+    .btn-accept:hover { background: #047857; }
+    .btn-reject {
+      padding: 6px 14px; background: white; color: #dc2626;
+      border: 1px solid #fecaca; border-radius: 8px; font-size: .82rem;
+      font-family: inherit; cursor: pointer;
+    }
+    .btn-reject:hover { background: #fef2f2; }
+
+    .badge-pending  { font-size:.75rem; padding:3px 10px; border-radius:20px; background:#fef3c7; color:#92400e; font-weight:600; }
+    .badge-accepted { font-size:.75rem; padding:3px 10px; border-radius:20px; background:#d1fae5; color:#065f46; font-weight:600; }
+    .badge-rejected { font-size:.75rem; padding:3px 10px; border-radius:20px; background:#fee2e2; color:#991b1b; font-weight:600; }
+
+    .skill-tag {
+      display: inline-block; padding: 4px 10px;
+      border-radius: 20px; font-size: .75rem; font-weight: 500; margin: 3px;
+      background: #d1fae5; color: #065f46;
+    }
+    .skills-section {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 20px 24px;
+    }
+    .skills-section h4 {
+      font-size: .85rem; font-weight: 600; color: #6b7280;
+      text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px;
+    }
+    .skills-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .suggest-wrap { position: relative; }
+    .suggestions {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: white; border: 1px solid #d1d5db;
+      border-radius: 8px; z-index: 10;
+      max-height: 180px; overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+      display: none;
+    }
+    .suggestions.show { display: block; }
+    .suggestion-item {
+      padding: 10px 14px; cursor: pointer; font-size: .9rem;
+      transition: background .15s;
+    }
+    .suggestion-item:hover { background: #f3f4f6; }
+
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: .875rem; display: none; }
+    .alert.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; display: block; }
+    .alert.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; display: block; }
+
+    .empty { font-size: .875rem; color: #9ca3af; }
+
+    .session-card {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 12px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .session-badge {
+      background: #d1fae5; color: #065f46;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: .75rem; font-weight: 600;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .duration-pill {
+      background: #ecfdf5; color: #059669;
+      border: 1px solid #a7f3d0;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: .75rem; font-weight: 700;
+      white-space: nowrap; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo">Mentor<span>Bridge</span></div>
+  <div class="tagline">Mentor Portal</div>
+
+  <div class="user-card">
+    <div class="avatar" id="sidebar-avatar">M</div>
+    <div>
+      <div class="user-name" id="sidebar-name">Loading...</div>
+      <div class="user-role">Mentor</div>
+    </div>
+  </div>
+
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showView('dashboard')">🏠 Dashboard</button>
+    <button class="nav-link" onclick="showView('my-students')">👥 My Students</button>
+    <button class="nav-link" onclick="showView('requests')">📩 Requests</button>
+    <button class="nav-link" onclick="showView('sessions')">📅 Sessions</button>
+    <button class="nav-link" onclick="showView('analytics')">📊 Analytics</button>
+    <button class="nav-link" onclick="showView('add-skill')">➕ Add Skill</button>
+    <button class="nav-link" onclick="showView('my-skills')">🎯 My Skills</button>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <h2 id="topbar-title">Dashboard</h2>
+  </div>
+
+  <div class="content">
+
+    <!-- Dashboard -->
+    <div class="view active" id="view-dashboard">
+      <div class="greeting">
+        <h1 id="greeting-text">Good morning 👋</h1>
+        <p>Here's an overview of your mentorship activity.</p>
+      </div>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">My Students</div>
+          <div class="value" id="stat-students">0</div>
+          <div class="sub">Currently mentoring</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Avg Rating</div>
+          <div class="value" id="stat-rating">—</div>
+          <div class="sub">Based on feedback</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Hours</div>
+          <div class="value" id="stat-hours">0</div>
+          <div class="sub">Sessions completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Sessions</div>
+          <div class="value" id="stat-sessions">0</div>
+          <div class="sub">Total sessions held</div>
+        </div>
+      </div>
+
+      <div class="skills-section">
+        <h4>🎯 My Skills</h4>
+        <div class="skills-wrap" id="dash-mentor-skills">
+          <span style="font-size:.85rem;color:#9ca3af;">Loading...</span>
+        </div>
+      </div>
+
+      <div class="section-title">My Students</div>
+      <div id="dash-students" style="display:flex;flex-direction:column;gap:10px;">
+        <p class="empty">Loading...</p>
+      </div>
+
+      <div class="section-title">Recent Sessions</div>
+      <div id="dash-sessions" style="display:flex;flex-direction:column;gap:10px;">
+        <p class="empty">Loading...</p>
+      </div>
+    </div>
+
+    <!-- My Students -->
+    <div class="view" id="view-my-students">
+      <div class="greeting">
+        <h1>My Students</h1>
+        <p>All students you are currently mentoring.</p>
+      </div>
+      <div id="all-students" style="display:flex;flex-direction:column;gap:10px;">
+        <p class="empty">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Requests -->
+    <div class="view" id="view-requests">
+      <div class="greeting">
+        <h1>Incoming Requests</h1>
+        <p>Accept or reject mentorship requests from students.</p>
+      </div>
+      <div id="incoming-requests" style="display:flex;flex-direction:column;gap:10px;">
+        <p class="empty">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Sessions -->
+    <div class="view" id="view-sessions">
+      <div class="greeting">
+        <h1>Sessions</h1>
+        <p>All your completed mentorship sessions.</p>
+      </div>
+      <div id="sessions-list" style="display:flex;flex-direction:column;gap:10px;">
+        <p class="empty">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="view" id="view-analytics">
+      <div class="greeting">
+        <h1>Analytics</h1>
+        <p>Your full mentorship stats.</p>
+      </div>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">My Students</div>
+          <div class="value" id="an-students">0</div>
+          <div class="sub">Total mentored</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Avg Rating</div>
+          <div class="value" id="an-rating">—</div>
+          <div class="sub">From feedback</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Hours</div>
+          <div class="value" id="an-hours">0</div>
+          <div class="sub">Sessions logged</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Sessions</div>
+          <div class="value" id="an-sessions">0</div>
+          <div class="sub">Total sessions held</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Skill -->
+    <div class="view" id="view-add-skill">
+      <div class="greeting">
+        <h1>Add a Skill</h1>
+        <p>Add a skill you can mentor students in.</p>
+      </div>
+      <div class="form-card">
+        <div id="skill-alert" class="alert"></div>
+        <div class="suggest-wrap">
+          <input id="skill-name-input" placeholder="Type skill name (e.g. Python)"
+            autocomplete="off" oninput="suggestMentorSkill(this.value)" />
+          <div class="suggestions" id="mentor-skill-suggestions"></div>
+        </div>
+        <button onclick="addSkill()">Add Skill</button>
+      </div>
+    </div>
+
+    <!-- My Skills -->
+    <div class="view" id="view-my-skills">
+      <div class="greeting">
+        <h1>My Skills</h1>
+        <p>Skills you currently offer as a mentor.</p>
+      </div>
+      <div class="skills-section">
+        <h4>🎯 Your Skills</h4>
+        <div class="skills-wrap" id="mentor-skills-display">
+          <span style="font-size:.85rem;color:#9ca3af;">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let currentUser = null;
+  let selectedMentorSkillId = null;
+  const colors = ['#4f46e5','#0891b2','#059669','#d97706','#dc2626','#7c3aed'];
+
+  function getColor(name) {
+    let h = 0; for (let c of name) h += c.charCodeAt(0);
+    return colors[h % colors.length];
+  }
+  function initials(name) {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+  }
+
+  function showView(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    const titles = {
+      dashboard: 'Dashboard',
+      'my-students': 'My Students',
+      requests: 'Requests',
+      sessions: 'Sessions',
+      analytics: 'Analytics',
+      'add-skill': 'Add Skill',
+      'my-skills': 'My Skills'
+    };
+    document.getElementById('topbar-title').textContent = titles[view] || '';
+    const idx = ['dashboard','my-students','requests','sessions','analytics','add-skill','my-skills'].indexOf(view);
+    document.querySelectorAll('.nav-link')[idx]?.classList.add('active');
+    if (view === 'my-skills') loadMySkills();
+    if (view === 'sessions') loadSessions();
+  }
+
+  window.onload = async () => {
+    const res = await fetch('/me');
+    currentUser = await res.json();
+    if (!currentUser || currentUser.role !== 'mentor') {
+      window.location.href = 'login.html'; return;
+    }
+    document.getElementById('sidebar-avatar').textContent = initials(currentUser.name);
+    document.getElementById('sidebar-avatar').style.background = getColor(currentUser.name);
+    document.getElementById('sidebar-name').textContent = currentUser.name;
+    document.getElementById('greeting-text').textContent =
+      `${getGreeting()}, ${currentUser.name.split(' ')[0]} 👋`;
+    loadStats();
+    loadRequests();
+  };
+
+  async function loadStats() {
+    const res  = await fetch('/analytics');
+    const data = await res.json();
+    const me   = data.find(d => d.user_id === currentUser.user_id);
+    if (me) {
+      const s = me.students || 0;
+      const r = me.rating ? parseFloat(me.rating).toFixed(1) : '—';
+      const h = me.hours  || 0;
+      ['stat-students','an-students'].forEach(id => document.getElementById(id).textContent = s);
+      ['stat-rating','an-rating'].forEach(id => document.getElementById(id).textContent = r);
+      ['stat-hours','an-hours'].forEach(id => document.getElementById(id).textContent = h);
+    }
+
+    // Load session count for stat cards
+    const sr = await fetch(`/sessions/${currentUser.user_id}`);
+    const sd = await sr.json();
+    const count = sd.length;
+    document.getElementById('stat-sessions').textContent = count;
+    document.getElementById('an-sessions').textContent   = count;
+
+    // Show recent 3 sessions on dashboard
+    renderSessionCards(sd.slice(0, 3), 'dash-sessions');
+
+    loadStudents();
+  }
+
+  function renderSessionCards(data, containerId) {
+    const el = document.getElementById(containerId);
+    if (!data.length) {
+      el.innerHTML = '<p class="empty">No sessions yet.</p>';
+      return;
+    }
+    el.innerHTML = data.map(s => `
+      <div class="session-card">
+        <div class="mini-avatar" style="background:${getColor(s.student_name)}">${initials(s.student_name)}</div>
+        <div class="info" style="flex:1;">
+          <div class="name">${s.student_name}</div>
+          <div class="meta">
+            ${s.skill_name ? `📚 <strong>${s.skill_name}</strong> &nbsp;·&nbsp;` : ''}
+            📅 ${formatDate(s.session_date)}
+          </div>
+        </div>
+        <div class="duration-pill">⏱ ${s.duration} hrs</div>
+        <span class="session-badge">✓ Completed</span>
+      </div>`).join('');
+  }
+  async function loadSessions() {
+    const res  = await fetch(`/sessions/${currentUser.user_id}`);
+    const data = await res.json();
+    renderSessionCards(data, 'sessions-list');
+  }
+
+  async function loadStudents() {
+    const res  = await fetch(`/my-students/${currentUser.user_id}`);
+    const data = await res.json();
+    const html = data.length
+      ? data.map(s => `
+          <div class="list-card">
+            <div class="mini-avatar" style="background:${getColor(s.name)}">${initials(s.name)}</div>
+            <div class="info">
+              <div class="name">${s.name}</div>
+              <div class="meta">
+                Student ID: ${s.user_id}
+                ${s.skill_name ? `&nbsp;·&nbsp; 📚 <strong>${s.skill_name}</strong>` : ''}
+              </div>
+            </div>
+          </div>`).join('')
+      : '<p class="empty">No students yet.</p>';
+    document.getElementById('dash-students').innerHTML = html;
+    document.getElementById('all-students').innerHTML = html;
+
+    const sr = await fetch(`/mentor-skills/${currentUser.user_id}`);
+    const sk = await sr.json();
+    const el = document.getElementById('dash-mentor-skills');
+    el.innerHTML = sk.length
+      ? sk.map(s => `<span class="skill-tag">${s.skill_name}</span>`).join('')
+      : '<span style="font-size:.85rem;color:#9ca3af;">No skills added yet. <button onclick="showView(\'add-skill\')" style="color:#059669;background:none;border:none;cursor:pointer;font-family:inherit;font-size:.85rem;">Add one →</button></span>';
+  }
+
+  async function loadRequests() {
+    const res  = await fetch(`/requests/incoming/${currentUser.user_id}`);
+    const data = await res.json();
+    const out  = document.getElementById('incoming-requests');
+    out.innerHTML = data.length
+      ? data.map(r => `
+          <div class="list-card">
+            <div class="mini-avatar" style="background:${getColor(r.name)}">${initials(r.name)}</div>
+            <div class="info">
+              <div class="name">${r.name}</div>
+              <div class="meta">
+                Student ID: ${r.user_id}
+                ${r.skill_name ? `&nbsp;·&nbsp; 📚 <strong>${r.skill_name}</strong>` : ''}
+              </div>
+            </div>
+            ${r.status === 'pending'
+              ? `<div style="display:flex;gap:8px;margin-left:auto;">
+                  <button class="btn-accept" onclick="updateRequest(${r.mentorship_id},'accepted')">Accept</button>
+                  <button class="btn-reject" onclick="updateRequest(${r.mentorship_id},'rejected')">Reject</button>
+                 </div>`
+              : `<span class="badge-${r.status}" style="margin-left:auto;">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>`
+            }
+          </div>`).join('')
+      : '<p class="empty">No pending requests.</p>';
+  }
+
+  async function updateRequest(mentorship_id, status) {
+    await fetch('/request/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mentorship_id, status })
+    });
+    loadRequests();
+    loadStats();
+  }
+
+  async function loadMySkills() {
+    const res  = await fetch(`/mentor-skills/${currentUser.user_id}`);
+    const data = await res.json();
+    const el   = document.getElementById('mentor-skills-display');
+    el.innerHTML = data.length
+      ? data.map(s => `<span class="skill-tag">${s.skill_name}</span>`).join('')
+      : '<span style="font-size:.85rem;color:#9ca3af;">No skills added yet.</span>';
+  }
+
+  async function suggestMentorSkill(val) {
+    const box = document.getElementById('mentor-skill-suggestions');
+    selectedMentorSkillId = null;
+    if (!val.trim()) { box.className = 'suggestions'; return; }
+    const res  = await fetch(`/skill-by-name/${encodeURIComponent(val)}`);
+    const data = await res.json();
+    if (!data.length) { box.className = 'suggestions'; return; }
+    box.innerHTML = data.map(s =>
+      `<div class="suggestion-item" onclick="selectMentorSkill(${s.skill_id},'${s.skill_name}')">${s.skill_name}</div>`
+    ).join('');
+    box.className = 'suggestions show';
+  }
+
+  function selectMentorSkill(id, name) {
+    selectedMentorSkillId = id;
+    document.getElementById('skill-name-input').value = name;
+    document.getElementById('mentor-skill-suggestions').className = 'suggestions';
+  }
+
+  async function addSkill() {
+    const alertEl = document.getElementById('skill-alert');
+    alertEl.className = 'alert';
+    if (!selectedMentorSkillId) {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '⚠ Please type and select a skill from suggestions.';
+      return;
+    }
+    const res  = await fetch('/add-mentor-skill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mentor_id: currentUser.user_id, skill_id: selectedMentorSkillId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alertEl.className = 'alert success';
+      alertEl.textContent = '✓ Skill added successfully!';
+      document.getElementById('skill-name-input').value = '';
+      selectedMentorSkillId = null;
+    } else {
+      alertEl.className = 'alert error';
+      alertEl.textContent = '✗ Failed or skill already added.';
+    }
+  }
+
+  async function logout() {
+    await fetch('/logout', { method: 'POST' });
+    window.location.href = 'login.html';
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.suggest-wrap')) {
+      document.getElementById('mentor-skill-suggestions').className = 'suggestions';
+    }
+  });
+</script>
+</body>
+</html>

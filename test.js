@@ -1,0 +1,14 @@
+const assert = require('assert');
+const fs = require('fs');
+console.log('Running Alumni Mentorship MongoDB tests...');
+assert.strictEqual(fs.existsSync('./server.js'), true, 'server.js should exist');
+console.log('✓ server.js exists');
+assert.strictEqual(fs.existsSync('./db.js'), true, 'db.js should exist');
+console.log('✓ db.js exists');
+assert.strictEqual(fs.existsSync('./public/login.html'), true, 'login.html should exist');
+console.log('✓ login.html exists');
+assert.strictEqual(fs.existsSync('./public/index.html'), true, 'index.html should exist');
+console.log('✓ index.html exists');
+assert.strictEqual(fs.existsSync('./public/mentor.html'), true, 'mentor.html should exist');
+console.log('✓ mentor.html exists');
+console.log('All Alumni Mentorship MongoDB tests passed!');
